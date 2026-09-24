@@ -85,7 +85,10 @@ const color = computed(() => {
 
       <div class="border-t border-slate-700 pt-2 mt-2">
         <div class="text-slate-400 mb-1">计算结果</div>
-        <div class="grid grid-cols-3 gap-2">
+        <div v-if="!store.result" class="text-xs text-slate-500 text-center py-4">
+          未计算
+        </div>
+        <div v-else class="grid grid-cols-3 gap-2">
           <div class="bg-slate-900 rounded p-2">
             <div class="text-slate-500 text-[10px]">应力</div>
             <div class="text-sm font-bold" :style="{ color }">

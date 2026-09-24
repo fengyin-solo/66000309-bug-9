@@ -8,6 +8,11 @@ import {
   presetSimpleFrame,
   jetColormap,
 } from '../utils/fea-solver';
+import {
+  HEATMAP_MODES,
+  NOT_COMPUTED_LABEL,
+  type HeatmapMode,
+} from '../utils/heatmap';
 
 export const useFEAStore = defineStore('fea', () => {
   const model = ref<FEAModel>({ nodes: [], elements: [], loads: [] });
@@ -16,7 +21,7 @@ export const useFEAStore = defineStore('fea', () => {
   const showDeformed = ref(false);
   const deformationScale = ref(10);
   const selectedElement = ref<number | null>(null);
-  const heatmapMode = ref<'stress' | 'strain' | 'force'>('stress');
+  const heatmapMode = ref<HeatmapMode>('stress');
 
   // ─── Actions ──────────────────────────────────────────────────────────────
   function loadPreset(name: string) {
@@ -50,7 +55,7 @@ export const useFEAStore = defineStore('fea', () => {
     selectedElement.value = id;
   }
 
-  function setHeatmapMode(mode: 'stress' | 'strain' | 'force') {
+  function setHeatmapMode(mode: HeatmapMode) {
     heatmapMode.value = mode;
   }
 
@@ -64,38 +69,48 @@ export const useFEAStore = defineStore('fea', () => {
   }
 
   // ─── Computed ─────────────────────────────────────────────────────────────
-  const maxStress = computed(() => {
-    if (!result.value) return 0;
-    return result.value.maxStress;
+  // 未计算（含刚切换算例、结果被清空）时一律返回 null，由 UI 统一显示「未计算」，
+  // 不用 0 或横杠兜底，避免零值伪装成真实结果。
+  const maxStress = computed<number | null>(() =>
+    result.value ? result.value.maxStress : null
+  );
+
+  const maxDisplacement = computed<number | null>(() =>
+    result.value ? result.value.maxDisplacement : null
+  );
+
+  // 当前热力图口径的元数据（中文名 / 单位 / 取值方式），三处显示都从这里取
+  const heatmapMeta = computed(() => HEATMAP_MODES[heatmapMode.value]);
+  const heatmapLabel = computed(() => heatmapMeta.value.label);
+
+  // 当前口径下各单元的着色数值；未计算时为 null
+  const heatmapValues = computed<number[] | null>(() => {
+    if (!result.value) return null;
+    return heatmapMeta.value.values(result.value, model.value.elements);
   });
 
-  const maxDisplacement = computed(() => {
-    if (!result.value) return 0;
-    return result.value.maxDisplacement;
+  // 当前口径下的最大值（SI 单位）；未计算时为 null
+  const heatmapMax = computed<number | null>(() => {
+    const values = heatmapValues.value;
+    if (!values || values.length === 0) return null;
+    return Math.max(...values);
+  });
+
+  // 图例顶端 / 底部读数共用的展示文本；未计算时统一为「未计算」
+  const heatmapMaxText = computed(() => {
+    if (heatmapMax.value === null) return NOT_COMPUTED_LABEL;
+    const display = heatmapMeta.value.toDisplay(heatmapMax.value);
+    return `${heatmapMeta.value.format(display)} ${heatmapMeta.value.unit}`;
   });
 
   const elementColors = computed(() => {
     const colors = new Map<number, string>();
-    if (!result.value || model.value.elements.length === 0) {
+    const values = heatmapValues.value;
+    if (!values || model.value.elements.length === 0) {
       for (const el of model.value.elements) {
         colors.set(el.id, '#6b7280');
       }
       return colors;
-    }
-
-    let values: number[];
-    switch (heatmapMode.value) {
-      case 'stress':
-        values = result.value.stresses.map(Math.abs);
-        break;
-      case 'strain':
-        values = result.value.strains.map(Math.abs);
-        break;
-      case 'force':
-        values = model.value.elements.map((e) => Math.abs(e.force));
-        break;
-      default:
-        values = result.value.stresses.map(Math.abs);
     }
 
     const min = Math.min(...values);
@@ -120,6 +135,8 @@ export const useFEAStore = defineStore('fea', () => {
     heatmapMode,
     maxStress,
     maxDisplacement,
+    heatmapLabel,
+    heatmapMaxText,
     elementColors,
     loadPreset,
     solve,

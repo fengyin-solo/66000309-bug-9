@@ -42,15 +42,9 @@ onMounted(() => {
     <!-- Bottom status bar -->
     <footer class="bg-slate-900 border-t border-slate-800 px-6 py-2 flex items-center gap-6 text-xs text-slate-400">
       <span>
-        最大应力:
-        <span class="text-red-400 font-bold">
-          {{ store.result ? (store.maxStress / 1e6).toFixed(2) + ' MPa' : '—' }}
-        </span>
-      </span>
-      <span>
         最大位移:
         <span class="text-amber-400 font-bold">
-          {{ store.result ? (store.maxDisplacement * 1000).toFixed(3) + ' mm' : '—' }}
+          {{ store.maxDisplacement !== null ? (store.maxDisplacement * 1000).toFixed(3) + ' mm' : '未计算' }}
         </span>
       </span>
       <span>
@@ -59,8 +53,10 @@ onMounted(() => {
       <span>
         单元数: <span class="text-slate-200">{{ store.model.elements.length }}</span>
       </span>
-      <span class="ml-auto text-slate-600">
-        热力图: {{ store.heatmapMode }}
+      <span class="ml-auto">
+        热力图口径:
+        <span class="text-purple-300 font-bold" data-test="footer-mode">{{ store.heatmapLabel }}</span>
+        <span class="text-red-400 font-bold ml-2" data-test="footer-reading">{{ store.heatmapMaxText }}</span>
       </span>
     </footer>
   </div>

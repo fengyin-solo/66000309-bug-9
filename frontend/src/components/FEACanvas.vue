@@ -196,54 +196,48 @@ function draw() {
   const legendH = H - 60;
   const legendW = 15;
 
-  const gradient = ctx.createLinearGradient(0, legendY, 0, legendY + legendH);
-  gradient.addColorStop(0, 'rgb(255,0,0)');
-  gradient.addColorStop(0.25, 'rgb(255,255,0)');
-  gradient.addColorStop(0.5, 'rgb(0,255,0)');
-  gradient.addColorStop(0.75, 'rgb(0,255,255)');
-  gradient.addColorStop(1, 'rgb(0,0,128)');
+  const computed = store.result !== null;
 
-  ctx.fillStyle = gradient;
+  if (computed) {
+    const gradient = ctx.createLinearGradient(0, legendY, 0, legendY + legendH);
+    gradient.addColorStop(0, 'rgb(255,0,0)');
+    gradient.addColorStop(0.25, 'rgb(255,255,0)');
+    gradient.addColorStop(0.5, 'rgb(0,255,0)');
+    gradient.addColorStop(0.75, 'rgb(0,255,255)');
+    gradient.addColorStop(1, 'rgb(0,0,128)');
+    ctx.fillStyle = gradient;
+  } else {
+    // 未计算：色条也不使用任何热力色，避免给出“已有数值分布”的错觉
+    ctx.fillStyle = '#334155';
+  }
   ctx.fillRect(legendX, legendY, legendW, legendH);
   ctx.strokeStyle = '#475569';
   ctx.lineWidth = 1;
   ctx.strokeRect(legendX, legendY, legendW, legendH);
 
-  // Legend labels
-  ctx.fillStyle = '#94a3b8';
+  // Legend labels（口径名 / 读数 / 单位全部来自 store 的统一口径元数据）
   ctx.font = '10px sans-serif';
-  ctx.textAlign = 'left';
+  ctx.textAlign = 'right';
 
-  let maxVal = 0, minVal = 0;
-  if (store.result) {
-    switch (store.heatmapMode) {
-      case 'stress':
-        maxVal = Math.max(...store.result.stresses.map(Math.abs));
-        break;
-      case 'strain':
-        maxVal = Math.max(...store.result.strains.map(Math.abs));
-        break;
-      case 'force':
-        maxVal = Math.max(...elements.map((e) => Math.abs(e.force)));
-        break;
-    }
+  if (computed) {
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText(store.heatmapMaxText, legendX - 4, legendY + 8);
+    ctx.fillText('0', legendX - 4, legendY + legendH);
+  } else {
+    // 未计算时顶端统一显示「未计算」，不写零值、不写单位
+    ctx.fillStyle = '#64748b';
+    ctx.font = '10px sans-serif';
+    ctx.fillText(store.heatmapMaxText, legendX - 4, legendY + 8);
   }
 
-  const unit = store.heatmapMode === 'stress' ? 'MPa' :
-    store.heatmapMode === 'strain' ? '%' : 'kN';
-
-  ctx.textAlign = 'right';
-  ctx.fillText(`${maxVal.toExponential(1)} ${unit}`, legendX - 4, legendY + 8);
-  ctx.fillText('0', legendX - 4, legendY + legendH);
-
-  // Mode label
+  // Mode label —— 与侧栏、底部完全一致的中文口径名
   ctx.save();
   ctx.translate(legendX + legendW + 10, legendY + legendH / 2);
   ctx.rotate(-Math.PI / 2);
   ctx.textAlign = 'center';
   ctx.fillStyle = '#64748b';
   ctx.font = '11px sans-serif';
-  ctx.fillText(store.heatmapMode.toUpperCase(), 0, 0);
+  ctx.fillText(store.heatmapLabel, 0, 0);
   ctx.restore();
 }
 

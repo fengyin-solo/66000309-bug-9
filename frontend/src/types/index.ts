@@ -1,3 +1,5 @@
+export type HeatmapMode = 'stress' | 'strain' | 'force';
+
 export interface Node {
   id: number;
   x: number;

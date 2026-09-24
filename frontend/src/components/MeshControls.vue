@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useFEAStore } from '../store/fea';
+import { useFEAStore, HEATMAP_MODES } from '../store/fea';
 
 const store = useFEAStore();
 </script>
@@ -75,24 +75,25 @@ const store = useFEAStore();
 
     <!-- Heatmap mode -->
     <div>
-      <div class="text-xs text-slate-400 mb-1">热力图模式</div>
+      <div class="text-xs text-slate-400 mb-1">
+        热力图口径：<span class="text-purple-300 font-bold">{{ store.heatmapLabel }}</span>
+      </div>
       <div class="grid grid-cols-3 gap-1">
-        <label class="cursor-pointer">
-          <input type="radio" value="stress" v-model="store.heatmapMode" class="hidden peer" />
-          <div class="text-center py-1.5 rounded text-[10px] font-medium peer-checked:bg-purple-700 peer-checked:text-white bg-slate-700 text-slate-400 transition">
-            应力
-          </div>
-        </label>
-        <label class="cursor-pointer">
-          <input type="radio" value="strain" v-model="store.heatmapMode" class="hidden peer" />
-          <div class="text-center py-1.5 rounded text-[10px] font-medium peer-checked:bg-purple-700 peer-checked:text-white bg-slate-700 text-slate-400 transition">
-            应变
-          </div>
-        </label>
-        <label class="cursor-pointer">
-          <input type="radio" value="force" v-model="store.heatmapMode" class="hidden peer" />
-          <div class="text-center py-1.5 rounded text-[10px] font-medium peer-checked:bg-purple-700 peer-checked:text-white bg-slate-700 text-slate-400 transition">
-            轴力
+        <label
+          v-for="mode in HEATMAP_MODES"
+          :key="mode.value"
+          class="cursor-pointer"
+        >
+          <input
+            type="radio"
+            :value="mode.value"
+            v-model="store.heatmapMode"
+            class="hidden peer"
+          />
+          <div
+            class="text-center py-1.5 rounded text-[10px] font-medium peer-checked:bg-purple-700 peer-checked:text-white bg-slate-700 text-slate-400 transition"
+          >
+            {{ mode.label }}
           </div>
         </label>
       </div>
@@ -104,13 +105,13 @@ const store = useFEAStore();
         <div class="bg-slate-900 rounded p-2">
           <div class="text-slate-400">最大应力</div>
           <div class="text-sm font-bold text-red-400">
-            {{ store.result ? (store.maxStress / 1e6).toFixed(2) + ' MPa' : '—' }}
+            {{ store.hasResult ? (store.maxStress / 1e6).toFixed(2) + ' MPa' : '未计算' }}
           </div>
         </div>
         <div class="bg-slate-900 rounded p-2">
           <div class="text-slate-400">最大位移</div>
           <div class="text-sm font-bold text-amber-400">
-            {{ store.result ? (store.maxDisplacement * 1000).toFixed(3) + ' mm' : '—' }}
+            {{ store.hasResult ? (store.maxDisplacement * 1000).toFixed(3) + ' mm' : '未计算' }}
           </div>
         </div>
         <div class="bg-slate-900 rounded p-2">

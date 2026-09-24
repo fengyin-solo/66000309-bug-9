@@ -44,13 +44,13 @@ onMounted(() => {
       <span>
         最大应力:
         <span class="text-red-400 font-bold">
-          {{ store.result ? (store.maxStress / 1e6).toFixed(2) + ' MPa' : '—' }}
+          {{ store.hasResult ? (store.maxStress / 1e6).toFixed(2) + ' MPa' : '未计算' }}
         </span>
       </span>
       <span>
         最大位移:
         <span class="text-amber-400 font-bold">
-          {{ store.result ? (store.maxDisplacement * 1000).toFixed(3) + ' mm' : '—' }}
+          {{ store.hasResult ? (store.maxDisplacement * 1000).toFixed(3) + ' mm' : '未计算' }}
         </span>
       </span>
       <span>
@@ -59,8 +59,12 @@ onMounted(() => {
       <span>
         单元数: <span class="text-slate-200">{{ store.model.elements.length }}</span>
       </span>
-      <span class="ml-auto text-slate-600">
-        热力图: {{ store.heatmapMode }}
+      <span class="ml-auto text-slate-400">
+        热力图口径:
+        <span class="text-purple-300 font-bold">{{ store.heatmapLabel }}</span>
+        <span class="text-slate-500">
+          ｜{{ store.hasResult ? '最大值 ' + store.heatmapMax.toExponential(1) + ' ' + store.heatmapUnit : '未计算' }}
+        </span>
       </span>
     </footer>
   </div>

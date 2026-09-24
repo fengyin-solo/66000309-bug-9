@@ -209,41 +209,33 @@ function draw() {
   ctx.lineWidth = 1;
   ctx.strokeRect(legendX, legendY, legendW, legendH);
 
-  // Legend labels
+  // Legend labels（口径名称、单位、最大值统一取自 store，与侧栏、底部一致）
   ctx.fillStyle = '#94a3b8';
   ctx.font = '10px sans-serif';
-  ctx.textAlign = 'left';
+  ctx.textAlign = 'right';
 
-  let maxVal = 0, minVal = 0;
-  if (store.result) {
-    switch (store.heatmapMode) {
-      case 'stress':
-        maxVal = Math.max(...store.result.stresses.map(Math.abs));
-        break;
-      case 'strain':
-        maxVal = Math.max(...store.result.strains.map(Math.abs));
-        break;
-      case 'force':
-        maxVal = Math.max(...elements.map((e) => Math.abs(e.force)));
-        break;
-    }
+  if (!store.hasResult) {
+    // 未计算 / 刚换算例：不写数值，统一提示「未计算」
+    ctx.fillStyle = '#64748b';
+    ctx.fillText('未计算', legendX - 4, legendY + 8);
+  } else {
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText(
+      `${store.heatmapMax.toExponential(1)} ${store.heatmapUnit}`,
+      legendX - 4,
+      legendY + 8
+    );
+    ctx.fillText('0', legendX - 4, legendY + legendH);
   }
 
-  const unit = store.heatmapMode === 'stress' ? 'MPa' :
-    store.heatmapMode === 'strain' ? '%' : 'kN';
-
-  ctx.textAlign = 'right';
-  ctx.fillText(`${maxVal.toExponential(1)} ${unit}`, legendX - 4, legendY + 8);
-  ctx.fillText('0', legendX - 4, legendY + legendH);
-
-  // Mode label
+  // Mode label（与侧栏、底部同一份中文名）
   ctx.save();
   ctx.translate(legendX + legendW + 10, legendY + legendH / 2);
   ctx.rotate(-Math.PI / 2);
   ctx.textAlign = 'center';
   ctx.fillStyle = '#64748b';
   ctx.font = '11px sans-serif';
-  ctx.fillText(store.heatmapMode.toUpperCase(), 0, 0);
+  ctx.fillText(store.heatmapLabel, 0, 0);
   ctx.restore();
 }
 
